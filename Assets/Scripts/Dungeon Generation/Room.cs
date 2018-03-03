@@ -18,7 +18,7 @@ public class Room
     /// <param name="heightRange"></param>
     /// <param name="columns"></param>
     /// <param name="rows"></param>
-    public void SetupRoom(IntRange widthRange, IntRange heightRange, int columns, int rows)
+    public void InitRoom(IntRange widthRange, IntRange heightRange, int columns, int rows)
     {
         m_roomWidth  = widthRange.Random;
         m_roomHeight = heightRange.Random;
@@ -37,7 +37,7 @@ public class Room
     /// <param name="columns"></param>
     /// <param name="rows"></param>
     /// <param name="corridor"></param>
-    public void SetupRoom(IntRange widthRange, IntRange heightRange, int columns, int rows, Corridor corridor)
+    public void InitRoom(IntRange widthRange, IntRange heightRange, int columns, int rows, Corridor corridor)
     {
         m_enteringCorridor = corridor.m_direction;
 

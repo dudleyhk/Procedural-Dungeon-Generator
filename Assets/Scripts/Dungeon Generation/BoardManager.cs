@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-
-public enum TileType { Wall, Floor }
+// Keep in this order.
+public enum TileType { Wall, Floor, Player, OutterWall, Item, Exit, }
 
 public class BoardManager : MonoBehaviour
 {
+    // TODO: Handle incorrect sizes.
     [Header("Board/ Grid Info")]
     [SerializeField]
     [Range(5, 500)]
@@ -21,7 +22,7 @@ public class BoardManager : MonoBehaviour
     [SerializeField]
     [Range(1, 1000)]
     private int m_maxRooms = 15;
-    
+
     [Header("")]
     [SerializeField]
     [Range(1, 1000)]
@@ -47,6 +48,7 @@ public class BoardManager : MonoBehaviour
     private int m_maxCorridorLength = 15;
 
     [Header("Sprite Prefabs")]
+    // TODO: Write func to write file these automatically in Resource folder.
     [SerializeField]
     private List<GameObject> m_floorTiles;
     [SerializeField]
@@ -63,7 +65,13 @@ public class BoardManager : MonoBehaviour
     [SerializeField]
     private List<Corridor> m_corridors;
     [SerializeField]
-    private GameObject m_boardHolder;
+    private GameObject m_board;
+
+    [Header("Game Info")]
+    [SerializeField]
+    private int playerRoomSpawnID = 0;
+    [SerializeField]
+    private bool m_loadFromFile = false;
 
 
 
@@ -80,29 +88,56 @@ public class BoardManager : MonoBehaviour
         m_roomWidth = new IntRange(m_minRoomWidth, m_minRoomHeight);
         m_roomHeight = new IntRange(m_minRoomHeight, m_maxRoomHeight);
         m_corridorLength = new IntRange(m_minCorridorLength, m_maxCorridorLength);
+
+        m_board = new GameObject("TileBoard");
     }
 
     private void Start()
     {
-        m_boardHolder = new GameObject("BoardHolder");
-
-        SetupTileList();
-        CreateRoomsAndCorridors();
-
-        // WriteToFile();
-
-        // TODO: Read from text file. 
-        SetTilesValuesForRooms();
-        SetTilesValuesForCorridors();
-        InstantiateTiles();
-
-        //InstantiateOuterWalls();
+        Run();
     }
 
+
+    private void Update()
+    {
+        // TODO: Send to UIManager
+        if(Input.GetKeyDown(KeyCode.G))
+        {
+            Run();
+        }
+    }
+
+
+
+    private void Run()
+    {
+        Debug.Log("Log: Generate.");
+        if(m_loadFromFile && ReadDungeonFile("tempDungeon.txt"))
+        {
+            m_tiles = TextDungeon.FileData.TileData;
+            m_rows = TextDungeon.FileData.m_rows;
+            m_columns = TextDungeon.FileData.m_columns;
+        }
+        else
+        {
+            InitTileList();
+            GenerateDungeon();
+
+
+
+            
+            
+
+            WriteDungeonFile("tempDungeon.txt");
+        }
+        InstantiateTiles();
+    }
+
+
     /// <summary>
-    /// Set the tile to the correct width. 
+    /// Set the tile to the correct width.
     /// </summary>
-    private void SetupTileList()
+    private void InitTileList()
     {
         m_tiles = new TileType[m_columns][];
         for(int i = 0; i < m_tiles.Length; i++)
@@ -111,10 +146,11 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+
     /// <summary>
     /// This is where the generation happens.
     /// </summary>
-    private void CreateRoomsAndCorridors()
+    private void GenerateDungeon()
     {
         m_rooms = new List<Room>(new Room[m_numRooms.Random]);
         m_corridors = new List<Corridor>(new Corridor[m_rooms.Count - 1]);
@@ -123,82 +159,134 @@ public class BoardManager : MonoBehaviour
         m_corridors[0] = new Corridor();
 
         // Setup the first room without a corridor.
-        m_rooms[0].SetupRoom(m_roomWidth, m_roomHeight, m_columns, m_rows);
+        m_rooms[0].InitRoom(m_roomWidth, m_roomHeight, m_columns, m_rows);
 
         // Setup the first corridor using the first room.
-        m_corridors[0].SetupCorridor(m_rooms[0], m_corridorLength, m_roomWidth, m_roomHeight, m_columns, m_rows, true);
+        m_corridors[0].InitCorridor(m_rooms[0], m_corridorLength, m_roomWidth, m_roomHeight, m_columns, m_rows, true);
 
         for(int i = 1; i < m_rooms.Count; i++)
         {
             m_rooms[i] = new Room();
-            m_rooms[i].SetupRoom(m_roomWidth, m_roomHeight, m_columns, m_rows, m_corridors[i - 1]);
+            m_rooms[i].InitRoom(m_roomWidth, m_roomHeight, m_columns, m_rows, m_corridors[i - 1]);
 
             if(i < m_corridors.Count)
             {
                 m_corridors[i] = new Corridor();
-                m_corridors[i].SetupCorridor(m_rooms[i], m_corridorLength, m_roomWidth, m_roomHeight, m_columns, m_rows, false);
+                m_corridors[i].InitCorridor(m_rooms[i], m_corridorLength, m_roomWidth, m_roomHeight, m_columns, m_rows, false);
             }
+        }
 
-            if(i == m_rooms.Count * 0.5f)
+        SetRoomTiles();
+        SetCorridorTiles();
+        SetPlayerTile();
+        AddOutterWall();
+    }
+
+
+    private void SetPlayerTile()
+    {
+        // foreach room in roomList
+            // save lowest x
+            // save lowest y
+
+        AddPlayer(m_rooms[playerRoomSpawnID]);
+    }
+
+
+    private void AddOutterWall()
+    {
+        for(int i = 0; i < m_columns; i++)
+        {
+            for(int j = 0; j < m_rows; j++)
             {
-                Vector3 playerPos = new Vector3(m_rooms[i].m_xPos, m_rooms[i].m_yPos, 0);
-                Instantiate(m_player, playerPos, Quaternion.identity);
+                var idx = i * m_columns + j;
+                if(i == 0)
+                {
+                    m_tiles[i][j] = TileType.OutterWall;
+                }
+                else if(i == m_columns - 1)
+                {
+                    m_tiles[i][j] = TileType.OutterWall;
+                }
+                else if(j == 0)
+                {
+                    m_tiles[i][j] = TileType.OutterWall;
+                }
+                else if(j == m_rows - 1)
+                {
+                    m_tiles[i][j] = TileType.OutterWall;
+                }
+                else
+                {
+                    // Do nothing.
+                }
             }
         }
     }
+
+
+    private void AddPlayer(Room room)
+    {
+        // TODO: Player to start in bottom left and end top right.
+        Vector3 playerPos = new Vector3(room.m_xPos, room.m_yPos);
+        Instantiate(m_player, playerPos, Quaternion.identity);
+        m_tiles[(int)playerPos.x][(int)playerPos.y] = TileType.Player;
+    }
+
+
 
     /// <summary>
     /// Set the tile type for the Rooms.
     /// </summary>
-    private void SetTilesValuesForRooms()
+    private void SetRoomTiles()
     {
         for(int i = 0; i < m_rooms.Count; i++)
         {
-            Room currentRoom = m_rooms[i];
-
-            for(int j = 0; j < currentRoom.m_roomWidth; j++)
+            var room = m_rooms[i];
+            for(int j = 0; j < room.m_roomWidth; j++)
             {
-                int xCoord = currentRoom.m_xPos + j;
-
-                for(int k = 0; k < currentRoom.m_roomHeight; k++)
+                int x = room.m_xPos + j;
+                for(int k = 0; k < room.m_roomHeight; k++)
                 {
-                    int yCoord = currentRoom.m_yPos + k;
-                    m_tiles[xCoord][yCoord] = TileType.Floor;
+                    int y = room.m_yPos + k;
+                    m_tiles[x][y] = TileType.Floor;
                 }
             }
         }
     }
 
 
-    private void SetTilesValuesForCorridors()
+    private void SetCorridorTiles()
     {
         for(int i = 0; i < m_corridors.Count; i++)
         {
-            Corridor currentCorridor = m_corridors[i];
+            var currentCorridor = m_corridors[i];
 
             for(int j = 0; j < currentCorridor.m_corridorLength; j++)
             {
-                int xCoord = currentCorridor.m_startXPosition;
-                int yCoord = currentCorridor.m_startYPosition;
+                int x = currentCorridor.m_startXPosition;
+                int y = currentCorridor.m_startYPosition;
 
+
+                //TODO: Different size corridors by changing the Xs and Ys
                 switch(currentCorridor.m_direction)
                 {
                     case Direction.North:
-                        yCoord += j;
+                        y += j;
                         break;
                     case Direction.East:
-                        xCoord += j;
+                        x += j;
                         break;
                     case Direction.South:
-                        yCoord -= j;
+                        y -= j;
                         break;
                     case Direction.West:
-                        xCoord -= j;
+                        x -= j;
                         break;
                 }
 
                 // Set the tile at these coordinates to Floor.
-                m_tiles[xCoord][yCoord] = TileType.Floor;
+                m_tiles[x][y] = TileType.Floor;
             }
         }
     }
@@ -213,79 +301,62 @@ public class BoardManager : MonoBehaviour
         {
             for(int j = 0; j < m_tiles[i].Length; j++)
             {
-                InstantiateFromArray(m_floorTiles.ToArray(), i, j);
+                InstantiateFromArray(m_floorTiles, i, j);
 
                 if(m_tiles[i][j] == TileType.Wall)
                 {
-                    InstantiateFromArray(m_wallTiles.ToArray(), i, j);
+                    InstantiateFromArray(m_wallTiles, i, j);
+                }
+                if(m_tiles[i][j] == TileType.OutterWall)
+                {
+                    InstantiateFromArray(m_outerWallTiles, i, j);
                 }
             }
         }
     }
 
-
-    private void InstantiateOuterWalls()
+    /// <summary>
+    /// TODO: Saving in Unity via UI
+    /// </summary>
+    /// <param name="fileName"></param>
+    public void WriteDungeonFile(string fileName)
     {
-        // The outer walls are one unit left, right, up and down from the board.
-        float leftEdgeX = -1f;
-        float rightEdgeX = m_columns + 0f;
-        float bottomEdgeY = -1f;
-        float topEdgeY = m_rows + 0f;
-
-        // Instantiate both vertical walls (one on each side).
-        InstantiateVerticalOuterWall(leftEdgeX, bottomEdgeY, topEdgeY);
-        InstantiateVerticalOuterWall(rightEdgeX, bottomEdgeY, topEdgeY);
-
-        // Instantiate both horizontal walls, these are one in left and right from the outer walls.
-        InstantiateHorizontalOuterWall(leftEdgeX + 1f, rightEdgeX - 1f, bottomEdgeY);
-        InstantiateHorizontalOuterWall(leftEdgeX + 1f, rightEdgeX - 1f, topEdgeY);
-    }
-
-
-    private void InstantiateVerticalOuterWall(float xCoord, float startingY, float endingY)
-    {
-        // Start the loop at the starting value for Y.
-        float currentY = startingY;
-
-        // While the value for Y is less than the end value...
-        while(currentY <= endingY)
+        if(!TextDungeon.BuildTextDungeonFile(m_tiles))
         {
-            // ... instantiate an outer wall tile at the x coordinate and the current y coordinate.
-            InstantiateFromArray(m_outerWallTiles.ToArray(), xCoord, currentY);
+            Debug.LogError("Error: Building the dungeon file");
+        }
 
-            currentY++;
+        if(!TextDungeon.OutputToFile(Application.dataPath + "/Resources/Saves/", fileName, TextDungeon.OutputData))
+        {
+            Debug.LogError("Error: Outputting to file.");
         }
     }
 
 
-    private void InstantiateHorizontalOuterWall(float startingX, float endingX, float yCoord)
+    public bool ReadDungeonFile(string fileName)
     {
-        // Start the loop at the starting value for X.
-        float currentX = startingX;
-
-        // While the value for X is less than the end value...
-        while(currentX <= endingX)
+        if(!TextDungeon.ReadFile(Application.dataPath + "/Resources/Saves/", fileName))
         {
-            // ... instantiate an outer wall tile at the y coordinate and the current x coordinate.
-            InstantiateFromArray(m_outerWallTiles.ToArray(), currentX, yCoord);
-
-            currentX++;
+            Debug.LogError("Error: Function returned false");
+            return false;
         }
+        return true;
     }
 
     /// <summary>
     /// Generate a prefab at random.
     /// </summary>
     /// <param name="prefabs"></param>
-    /// <param name="xCoord"></param>
-    /// <param name="yCoord"></param>
-    private void InstantiateFromArray(GameObject[] prefabs, float xCoord, float yCoord)
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    private void InstantiateFromArray(List<GameObject> prefabs, float x, float y)
     {
-        var randomIndex = Random.Range(0, prefabs.Length);
-        var position = new Vector3(xCoord, yCoord, 0f);
+        var randID = Random.Range(0, prefabs.Count);
+        var position = new Vector3(x, y, 0f);
 
-        GameObject tileInstance = Instantiate(prefabs[randomIndex], position, Quaternion.identity) as GameObject;
+        var tile = Instantiate(prefabs[randID], position, Quaternion.identity) as GameObject;
+        tile.name = prefabs[randID].name;
 
-        tileInstance.transform.parent = m_boardHolder.transform;
+        tile.transform.parent = m_board.transform;
     }
 }

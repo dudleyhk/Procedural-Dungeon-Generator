@@ -50,7 +50,7 @@ public class Corridor
     /// <param name="columns"></param>
     /// <param name="rows"></param>
     /// <param name="firstCorridor"></param>
-    public void SetupCorridor(Room room, IntRange length, IntRange roomWidth, IntRange roomHeight, int columns, int rows, bool firstCorridor)
+    public void InitCorridor(Room room, IntRange length, IntRange roomWidth, IntRange roomHeight, int columns, int rows, bool firstCorridor)
     {
         // Select a random direction. 
         m_direction = (Direction)Random.Range(0, 4);
