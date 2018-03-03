@@ -2,7 +2,8 @@
 using UnityEngine;
 
 // Keep in this order.
-public enum TileType { Wall, Floor, Player, OutterWall, Item, Exit, }
+[System.Flags]
+public enum TileType { Wall = 1, Floor = 2, Player = 4, OutterWall = 8, Item = 16, Exit = 32 }
 
 public class BoardManager : MonoBehaviour
 {
@@ -52,6 +53,8 @@ public class BoardManager : MonoBehaviour
     [SerializeField]
     private List<GameObject> m_floorTiles;
     [SerializeField]
+    private List<GameObject> m_barrierTiles;
+    [SerializeField]
     private List<GameObject> m_wallTiles;
     [SerializeField]
     private List<GameObject> m_outerWallTiles;
@@ -74,12 +77,16 @@ public class BoardManager : MonoBehaviour
     private bool m_loadFromFile = false;
 
 
-
     private TileType[][] m_tiles;
     private IntRange m_numRooms;
     private IntRange m_roomWidth;
     private IntRange m_roomHeight;
     private IntRange m_corridorLength;
+
+
+    [System.Flags]
+    private enum DirBitMask { North = 1, West = 2, East = 4, South = 8 }
+    DirBitMask dirBit;
 
 
     private void Awake()
@@ -122,12 +129,6 @@ public class BoardManager : MonoBehaviour
         {
             InitTileList();
             GenerateDungeon();
-
-
-
-            
-            
-
             WriteDungeonFile("tempDungeon.txt");
         }
         InstantiateTiles();
@@ -143,6 +144,10 @@ public class BoardManager : MonoBehaviour
         for(int i = 0; i < m_tiles.Length; i++)
         {
             m_tiles[i] = new TileType[m_rows];
+            for(int j = 0; j < m_tiles[i].Length; j++)
+            {
+                m_tiles[i][j] = TileType.Wall;
+            }
         }
     }
 
@@ -182,12 +187,14 @@ public class BoardManager : MonoBehaviour
         AddOutterWall();
     }
 
-
+    /// <summary>
+    /// TODO: Start player in bottom left of dungeon
+    /// </summary>
     private void SetPlayerTile()
     {
         // foreach room in roomList
-            // save lowest x
-            // save lowest y
+        // save lowest x
+        // save lowest y
 
         AddPlayer(m_rooms[playerRoomSpawnID]);
     }
@@ -227,10 +234,7 @@ public class BoardManager : MonoBehaviour
 
     private void AddPlayer(Room room)
     {
-        // TODO: Player to start in bottom left and end top right.
-        Vector3 playerPos = new Vector3(room.m_xPos, room.m_yPos);
-        Instantiate(m_player, playerPos, Quaternion.identity);
-        m_tiles[(int)playerPos.x][(int)playerPos.y] = TileType.Player;
+        m_tiles[room.m_xPos][room.m_yPos] = TileType.Floor | TileType.Player;
     }
 
 
@@ -292,6 +296,68 @@ public class BoardManager : MonoBehaviour
     }
 
 
+
+    private void BitmaskFloorEdges()
+    {
+        // Run through each char in the tiletype
+        for(int x = 0; x < m_tiles.Length; x++)
+        {
+            for(int y = 0; y < m_tiles[x].Length; y++)
+            {
+                var tile = m_tiles[x][y];
+                if(tile == TileType.Floor)
+                {
+                    BitmaskDirection(1, x, y + 1); // North
+                    BitmaskDirection(2, x - 1, y); // West
+                    BitmaskDirection(4, x + 1, y); // East
+                    BitmaskDirection(8, x, y - 1); // South
+
+                    var tileID = CalculateSpriteID(); 
+                }
+            }
+        }
+    }
+
+
+    private void BitmaskDirection(int bitFlag, int x, int y)
+    {
+        if(x >= m_rows || x < 0)
+            return;
+        if(y >= m_columns || y < 0)
+            return;
+
+        if((m_tiles[x][y] & TileType.Floor) == TileType.Floor)
+            dirBit |= (DirBitMask)bitFlag;
+    }
+
+
+    private int CalculateSpriteID()
+    {
+        int total = 0;
+
+        if((dirBit & DirBitMask.North) == DirBitMask.North)
+        {
+            total += (int)DirBitMask.North;
+        }
+
+        if((dirBit & DirBitMask.West) == DirBitMask.West)
+        {
+            total += (int)DirBitMask.West;
+        }
+
+        if((dirBit & DirBitMask.East) == DirBitMask.East)
+        {
+            total += (int)DirBitMask.East;
+        }
+
+        if((dirBit & DirBitMask.South) == DirBitMask.South)
+        {
+            total += (int)DirBitMask.South;
+        }
+
+        return total;
+    }
+
     /// <summary>
     /// Build sprites to scene.
     /// </summary>
@@ -301,15 +367,40 @@ public class BoardManager : MonoBehaviour
         {
             for(int j = 0; j < m_tiles[i].Length; j++)
             {
-                InstantiateFromArray(m_floorTiles, i, j);
-
-                if(m_tiles[i][j] == TileType.Wall)
+                if((m_tiles[i][j] & TileType.Wall) == TileType.Wall)
                 {
                     InstantiateFromArray(m_wallTiles, i, j);
                 }
-                if(m_tiles[i][j] == TileType.OutterWall)
+                else if((m_tiles[i][j] & TileType.OutterWall) == TileType.OutterWall)
                 {
                     InstantiateFromArray(m_outerWallTiles, i, j);
+                }
+                else if((m_tiles[i][j] & TileType.Player) == TileType.Player)
+                {
+                    Instantiate(m_player, new Vector2(i, j), Quaternion.identity);
+                }
+                
+                if((m_tiles[i][j] & TileType.Floor) == TileType.Floor)
+                {
+                    dirBit = new DirBitMask();
+                    BitmaskDirection(1, i, j + 1); // North
+                    BitmaskDirection(2, i - 1, j); // West
+                    BitmaskDirection(4, i + 1, j); // East
+                    BitmaskDirection(8, i, j - 1); // South
+
+                    var tileID = CalculateSpriteID();
+                    if(tileID == m_barrierTiles.Count)
+                    {
+                        InstantiateFromArray(m_floorTiles, i, j);
+                    }
+                    else
+                    {
+                        Instantiate(m_barrierTiles[tileID], new Vector2(i, j), Quaternion.identity, m_board.transform);
+                    }
+                }
+                else
+                {
+                    // do nothing
                 }
             }
         }
@@ -317,7 +408,7 @@ public class BoardManager : MonoBehaviour
 
     /// <summary>
     /// TODO: Saving in Unity via UI
-    /// </summary>
+    /// </summary>  
     /// <param name="fileName"></param>
     public void WriteDungeonFile(string fileName)
     {
@@ -343,7 +434,7 @@ public class BoardManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>
+    /// <summary> 
     /// Generate a prefab at random.
     /// </summary>
     /// <param name="prefabs"></param>

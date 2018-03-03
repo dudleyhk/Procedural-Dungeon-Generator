@@ -154,10 +154,13 @@ public class TextDungeon
                         FileData.TileData[i][j] = TileType.Wall;
                         break;
                     case StringLiterals.Player:
-                        FileData.TileData[i][j] = TileType.Player;
+                        FileData.TileData[i][j] = TileType.Player | TileType.Floor;
                         break;
                     case StringLiterals.Floor:
                         FileData.TileData[i][j] = TileType.Floor;
+                        break;
+                    case StringLiterals.OutterWall:
+                        FileData.TileData[i][j] = TileType.OutterWall;
                         break;
                     default:
                         UnityEngine.Debug.LogWarning("Warning: Invalid TileType - " + tileChar);
@@ -172,28 +175,26 @@ public class TextDungeon
     private static char TileTypeToChar(TileType type)
     {
         char output = StringLiterals.Debug;
-        switch(type)
+
+        if((type & TileType.Wall) == TileType.Wall)
         {
-            case TileType.Wall:
-                output = StringLiterals.Wall;
-                break;
-
-            case TileType.Player:
-                output = StringLiterals.Player;
-                break;
-
-            case TileType.OutterWall:
-                output = StringLiterals.OutterWall;
-                break;
-
-
-            case TileType.Floor:
-                output = StringLiterals.Floor;
-                break;
-
-            default:
-                UnityEngine.Debug.LogWarning("Warning: Invalid TileType - " + type.ToString());
-                break;
+            output = StringLiterals.Wall;
+        }
+        else if((type & TileType.OutterWall) == TileType.OutterWall)
+        {
+            output = StringLiterals.OutterWall;
+        }
+        else if((type & TileType.Player) == TileType.Player)
+        {
+            output = StringLiterals.Player;
+        }
+        else if((type & TileType.Floor) == TileType.Floor)
+        {
+            output = StringLiterals.Floor;
+        }
+        else
+        {
+            UnityEngine.Debug.LogWarning("Warning: Invalid TileType - " + type.ToString());
         }
         return output;
     }
