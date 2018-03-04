@@ -3,10 +3,13 @@ using UnityEngine;
 
 // Keep in this order.
 [System.Flags]
-public enum TileType { Wall = 1, Floor = 2, Player = 4, OutterWall = 8, Item = 16, Exit = 32 }
+public enum TileType { Wall = 1, Floor = 2, Player = 4, OutterWall = 8, Item = 16, Exit = 32, Empty = 64 }
 
 public class BoardManager : MonoBehaviour
 {
+    public TileType[][] m_tiles;
+
+
     // TODO: Handle incorrect sizes.
     [Header("Board/ Grid Info")]
     [SerializeField]
@@ -51,13 +54,13 @@ public class BoardManager : MonoBehaviour
     [Header("Sprite Prefabs")]
     // TODO: Write func to write file these automatically in Resource folder.
     [SerializeField]
-    private List<GameObject> m_floorTiles;
+    public List<GameObject> m_floorTiles;
     [SerializeField]
     private List<GameObject> m_barrierTiles;
     [SerializeField]
-    private List<GameObject> m_wallTiles;
+    public List<GameObject> m_wallTiles;
     [SerializeField]
-    private List<GameObject> m_outerWallTiles;
+    public List<GameObject> m_outerWallTiles;
     [SerializeField]
     private GameObject m_player;
 
@@ -68,7 +71,7 @@ public class BoardManager : MonoBehaviour
     [SerializeField]
     private List<Corridor> m_corridors;
     [SerializeField]
-    private GameObject m_board;
+    public GameObject m_board;
 
     [Header("Game Info")]
     [SerializeField]
@@ -77,7 +80,6 @@ public class BoardManager : MonoBehaviour
     private bool m_loadFromFile = false;
 
 
-    private TileType[][] m_tiles;
     private IntRange m_numRooms;
     private IntRange m_roomWidth;
     private IntRange m_roomHeight;
@@ -87,6 +89,7 @@ public class BoardManager : MonoBehaviour
     [System.Flags]
     private enum DirBitMask { North = 1, West = 2, East = 4, South = 8 }
     DirBitMask dirBit;
+    private List<GameObject> m_barriers;
 
 
     private void Awake()
@@ -297,22 +300,42 @@ public class BoardManager : MonoBehaviour
 
 
 
-    private void BitmaskFloorEdges()
+    public void BitmaskFloorEdges(bool initFloor)
     {
-        // Run through each char in the tiletype
-        for(int x = 0; x < m_tiles.Length; x++)
-        {
-            for(int y = 0; y < m_tiles[x].Length; y++)
-            {
-                var tile = m_tiles[x][y];
-                if(tile == TileType.Floor)
-                {
-                    BitmaskDirection(1, x, y + 1); // North
-                    BitmaskDirection(2, x - 1, y); // West
-                    BitmaskDirection(4, x + 1, y); // East
-                    BitmaskDirection(8, x, y - 1); // South
+        ClearBarriers();
+        m_barriers = new List<GameObject>();
 
-                    var tileID = CalculateSpriteID(); 
+        // Run through each char in the tiletype
+        for(int i = 0; i < m_tiles.Length; i++)
+        {
+            for(int j = 0; j < m_tiles[i].Length; j++)
+            {
+                if((m_tiles[i][j] & TileType.Floor) == TileType.Floor)
+                {
+                    dirBit = new DirBitMask();
+                    BitmaskDirection(1, i, j + 1); // North
+                    BitmaskDirection(2, i - 1, j); // West
+                    BitmaskDirection(4, i + 1, j); // East
+                    BitmaskDirection(8, i, j - 1); // South
+
+
+                    var tileID = CalculateSpriteID();
+                    if(tileID == m_barrierTiles.Count)
+                    {
+                        if(initFloor)
+                            InstantiateFromArray(m_floorTiles, i, j);
+                    }
+                    else
+                    {
+                        var tile = Instantiate(m_barrierTiles[tileID], new Vector3(i, j, 0), Quaternion.identity, m_board.transform);
+                        tile.name = tile.name;
+
+                        m_barriers.Add(tile);
+                    }
+                }
+                else
+                {
+                    // do nothing
                 }
             }
         }
@@ -321,9 +344,10 @@ public class BoardManager : MonoBehaviour
 
     private void BitmaskDirection(int bitFlag, int x, int y)
     {
-        if(x >= m_rows || x < 0)
+        // TODO: m_tiles[0] is a bit hacky and hardcoded.
+        if(x >= m_tiles.Length || x < 0)
             return;
-        if(y >= m_columns || y < 0)
+        if(y >= m_tiles[0].Length || y < 0)
             return;
 
         if((m_tiles[x][y] & TileType.Floor) == TileType.Floor)
@@ -358,6 +382,20 @@ public class BoardManager : MonoBehaviour
         return total;
     }
 
+
+    private void ClearBarriers()
+    {
+        if(m_barriers == null || m_barriers.Count <= 0)
+            return;
+
+        foreach(var b in m_barriers)
+        {
+            Destroy(b.gameObject);
+        }
+    }
+
+
+
     /// <summary>
     /// Build sprites to scene.
     /// </summary>
@@ -367,6 +405,7 @@ public class BoardManager : MonoBehaviour
         {
             for(int j = 0; j < m_tiles[i].Length; j++)
             {
+
                 if((m_tiles[i][j] & TileType.Wall) == TileType.Wall)
                 {
                     InstantiateFromArray(m_wallTiles, i, j);
@@ -379,31 +418,17 @@ public class BoardManager : MonoBehaviour
                 {
                     Instantiate(m_player, new Vector2(i, j), Quaternion.identity);
                 }
-                
-                if((m_tiles[i][j] & TileType.Floor) == TileType.Floor)
+                else if((m_tiles[i][j] & TileType.Empty) == TileType.Empty)
                 {
-                    dirBit = new DirBitMask();
-                    BitmaskDirection(1, i, j + 1); // North
-                    BitmaskDirection(2, i - 1, j); // West
-                    BitmaskDirection(4, i + 1, j); // East
-                    BitmaskDirection(8, i, j - 1); // South
-
-                    var tileID = CalculateSpriteID();
-                    if(tileID == m_barrierTiles.Count)
-                    {
-                        InstantiateFromArray(m_floorTiles, i, j);
-                    }
-                    else
-                    {
-                        Instantiate(m_barrierTiles[tileID], new Vector2(i, j), Quaternion.identity, m_board.transform);
-                    }
+                    // TODO: Handle Empty space.
                 }
                 else
                 {
-                    // do nothing
+                    // DO nothing 
                 }
             }
         }
+        BitmaskFloorEdges(true);
     }
 
     /// <summary>
@@ -440,7 +465,8 @@ public class BoardManager : MonoBehaviour
     /// <param name="prefabs"></param>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    private void InstantiateFromArray(List<GameObject> prefabs, float x, float y)
+    private void InstantiateFromArray(List<GameObject> prefabs, float x, float y) { InstantiateFromArray(prefabs, m_board, x, y); }
+    public static void InstantiateFromArray(List<GameObject> prefabs, GameObject board, float x, float y)
     {
         var randID = Random.Range(0, prefabs.Count);
         var position = new Vector3(x, y, 0f);
@@ -448,6 +474,6 @@ public class BoardManager : MonoBehaviour
         var tile = Instantiate(prefabs[randID], position, Quaternion.identity) as GameObject;
         tile.name = prefabs[randID].name;
 
-        tile.transform.parent = m_board.transform;
+        tile.transform.parent = board.transform;
     }
 }

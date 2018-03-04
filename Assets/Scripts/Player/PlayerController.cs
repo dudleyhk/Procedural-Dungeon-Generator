@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour 
 {
+    public bool PlayMode { private get; set; }
+
     [SerializeField]
     private Rigidbody2D m_rb;
     [SerializeField]
@@ -22,11 +24,15 @@ public class PlayerController : MonoBehaviour
         m_rb = GetComponent<Rigidbody2D>();
         m_animator = GetComponent<Animator>();
 
+        PlayMode = true;
+
         // TODO: ERROR CHECK
     }
 
     private void Update()
     {
+        if(!PlayMode) return;
+
         if(Input.GetKey(KeyCode.UpArrow))
         {
             m_moveUp = true;
