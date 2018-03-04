@@ -9,15 +9,7 @@ public class UIManager : MonoBehaviour
 {
     public delegate void ChangeBrushType(BrushType type);
     public  static event ChangeBrushType changeBrushType;
-
-
-
-
-
-
-
-
-
+    
     [SerializeField]
     private bool m_brushesEnabled = false;
 
@@ -40,7 +32,6 @@ public class UIManager : MonoBehaviour
 
         if(!m_brushesEnabled) SelectBrushType("Unassigned");
     }
-
 
 
     public void SelectBrushType(string typeStr)

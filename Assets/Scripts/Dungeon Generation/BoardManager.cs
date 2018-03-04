@@ -75,6 +75,8 @@ public class BoardManager : MonoBehaviour
 
     [Header("Game Info")]
     [SerializeField]
+    private List<GameObject> m_gridObjects = new List<GameObject>();
+    [SerializeField]
     private int playerRoomSpawnID = 0;
     [SerializeField]
     private bool m_loadFromFile = false;
@@ -88,8 +90,7 @@ public class BoardManager : MonoBehaviour
 
     [System.Flags]
     private enum DirBitMask { North = 1, West = 2, East = 4, South = 8 }
-    DirBitMask dirBit;
-    private List<GameObject> m_barriers;
+    private DirBitMask dirBit;
 
 
     private void Awake()
@@ -299,13 +300,52 @@ public class BoardManager : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// Remove any object which are about to be written over by BitmaskFloorEdges();
+    /// </summary>
+    public void BitmaskPreRemove()
+    {
+        // Run through each char in the tiletype
+        for(int i = 0; i < m_tiles.Length; i++)
+        {
+            for(int j = 0; j < m_tiles[i].Length; j++)
+            {
+                if((m_tiles[i][j] & TileType.Floor) == TileType.Floor)
+                {
+                    dirBit = new DirBitMask();
+                    BitmaskDirection(1, i, j + 1); // North
+                    BitmaskDirection(2, i - 1, j); // West
+                    BitmaskDirection(4, i + 1, j); // East
+                    BitmaskDirection(8, i, j - 1); // South
 
+
+
+                    var obj = m_gridObjects.Find(o => 
+                    {
+                        if(o == null) return false;
+
+                        return o.transform.position.x == i && o.transform.position.y == j;
+                    });
+
+                    m_gridObjects.Remove(obj);
+                    Destroy(obj);
+                }
+                else
+                {
+                    // do nothing
+                }
+            }
+        }
+    }
+
+
+
+    /// <summary>
+    /// init and update edges of sprites.
+    /// </summary>
+    /// <param name="initFloor"></param>
     public void BitmaskFloorEdges(bool initFloor)
     {
-        ClearBarriers();
-        m_barriers = new List<GameObject>();
-
-        // Run through each char in the tiletype
         for(int i = 0; i < m_tiles.Length; i++)
         {
             for(int j = 0; j < m_tiles[i].Length; j++)
@@ -322,15 +362,12 @@ public class BoardManager : MonoBehaviour
                     var tileID = CalculateSpriteID();
                     if(tileID == m_barrierTiles.Count)
                     {
-                        if(initFloor)
+                        //if(initFloor)
                             InstantiateFromArray(m_floorTiles, i, j);
                     }
                     else
                     {
-                        var tile = Instantiate(m_barrierTiles[tileID], new Vector3(i, j, 0), Quaternion.identity, m_board.transform);
-                        tile.name = tile.name;
-
-                        m_barriers.Add(tile);
+                        Instantiate(m_barrierTiles[tileID], m_board, new Vector3(i, j, 0));
                     }
                 }
                 else
@@ -383,15 +420,17 @@ public class BoardManager : MonoBehaviour
     }
 
 
-    private void ClearBarriers()
+    private void ClearGridObjects()
     {
-        if(m_barriers == null || m_barriers.Count <= 0)
+        if(m_gridObjects == null || m_gridObjects.Count <= 0)
             return;
 
-        foreach(var b in m_barriers)
+        foreach(var b in m_gridObjects)
         {
             Destroy(b.gameObject);
         }
+
+        m_gridObjects.Clear();
     }
 
 
@@ -405,7 +444,6 @@ public class BoardManager : MonoBehaviour
         {
             for(int j = 0; j < m_tiles[i].Length; j++)
             {
-
                 if((m_tiles[i][j] & TileType.Wall) == TileType.Wall)
                 {
                     InstantiateFromArray(m_wallTiles, i, j);
@@ -466,14 +504,30 @@ public class BoardManager : MonoBehaviour
     /// <param name="x"></param>
     /// <param name="y"></param>
     private void InstantiateFromArray(List<GameObject> prefabs, float x, float y) { InstantiateFromArray(prefabs, m_board, x, y); }
-    public static void InstantiateFromArray(List<GameObject> prefabs, GameObject board, float x, float y)
+    public void InstantiateFromArray(List<GameObject> prefabs, GameObject board, float x, float y)
     {
         var randID = Random.Range(0, prefabs.Count);
         var position = new Vector3(x, y, 0f);
 
-        var tile = Instantiate(prefabs[randID], position, Quaternion.identity) as GameObject;
-        tile.name = prefabs[randID].name;
-
-        tile.transform.parent = board.transform;
+        Instantiate(prefabs[randID], board, position);
     }
+
+    /// <summary>
+    /// A instantiation function which will add the object to the gridobjects function.
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="board"></param>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    public void Instantiate(GameObject prefab, GameObject board, float x, float y) { Instantiate(prefab, board, new Vector3(x,y,0f)); }
+    public void Instantiate(GameObject prefab, GameObject board, Vector3 position)
+    {
+        var tile = Instantiate(prefab, position, Quaternion.identity);
+        tile.name = prefab.name;
+        tile.transform.parent = board.transform;
+
+        m_gridObjects.Add(tile);
+    }
+    
+
 }
