@@ -8,7 +8,6 @@ public struct LoadData
     public int m_columns, m_rows;
 }
 
-
 public struct StringLiterals
 {
     public const string Blank = "";

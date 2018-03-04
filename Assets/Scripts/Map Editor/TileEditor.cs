@@ -16,7 +16,7 @@ public enum BrushType
 public class TileEditor : MonoBehaviour
 {
     [SerializeField]
-    private BoardManager m_boardManager;
+    private GameManager m_gameManager;
     [SerializeField]
     private PlayerController m_playerController;
     [SerializeField]
@@ -30,9 +30,17 @@ public class TileEditor : MonoBehaviour
 
     private void Awake()
     {
-        m_boardManager = FindObjectOfType<BoardManager>();
+        m_gameManager = FindObjectOfType<GameManager>();
         m_cameraController = FindObjectOfType<CameraController>();
         // TODO: Error check
+    }
+
+
+    private void Start()
+    {
+        EditMode();
+
+        // Start Coroutine which returns true when a player is found.
     }
 
 
@@ -92,8 +100,11 @@ public class TileEditor : MonoBehaviour
                         var x = (int)item.transform.position.x;
                         var y = (int)item.transform.position.y;
 
-                        m_boardManager.m_tiles[x][y] = TileType.Floor;
-                        m_boardManager.InstantiateFromArray(m_boardManager.m_floorTiles, m_boardManager.m_board, x, y);
+                        m_gameManager.m_boardManager.m_tiles[x][y] = TileType.Floor;
+                        m_gameManager.m_boardManager.InstantiateFromArray(
+                            m_gameManager.m_boardManager.m_floorTiles, 
+                            m_gameManager.m_boardManager.m_board, 
+                            x, y);
                         
                         Destroy(hit.transform.gameObject);
                     }
@@ -108,8 +119,11 @@ public class TileEditor : MonoBehaviour
                         var x = (int)item.transform.position.x;
                         var y = (int)item.transform.position.y;
 
-                        m_boardManager.m_tiles[x][y] = TileType.Wall;
-                        m_boardManager.InstantiateFromArray(m_boardManager.m_wallTiles, m_boardManager.m_board, x, y);
+                        m_gameManager.m_boardManager.m_tiles[x][y] = TileType.Wall;
+                        m_gameManager.m_boardManager.InstantiateFromArray(
+                            m_gameManager.m_boardManager.m_wallTiles,
+                            m_gameManager.m_boardManager.m_board, 
+                            x, y);
 
                         Destroy(hit.transform.gameObject);
                     }
@@ -136,7 +150,7 @@ public class TileEditor : MonoBehaviour
             var x = (int)item.transform.position.x;
             var y = (int)item.transform.position.y;
 
-            m_boardManager.m_tiles[x][y] = TileType.Empty;
+            m_gameManager.m_boardManager.m_tiles[x][y] = TileType.Empty;
 
             Destroy(hit.transform.gameObject);
         }
@@ -144,8 +158,8 @@ public class TileEditor : MonoBehaviour
 
     private void RecalculateBitmaskTiles()
     {
-        m_boardManager.BitmaskPreRemove();
-        m_boardManager.BitmaskFloorEdges(false);
+        m_gameManager.m_boardManager.RemoveEdgeAndFloorTiles();
+        m_gameManager.m_boardManager.BitmaskFloorEdges();
 
     }
 
@@ -162,15 +176,16 @@ public class TileEditor : MonoBehaviour
     private void PlayMode()
     {
         m_playerController = FindObjectOfType<PlayerController>();
+        m_playMode = true;
 
         if(m_playerController)
         {
-            m_playerController.PlayMode = true;
+            m_playerController.PlayMode = m_playMode;
         }
 
         if(m_cameraController)
         {
-            m_cameraController.PlayMode = true;
+            m_cameraController.PlayMode = m_playMode;
         }
     }
 
@@ -180,15 +195,16 @@ public class TileEditor : MonoBehaviour
     private void EditMode()
     {
         m_playerController = FindObjectOfType<PlayerController>();
+        m_playMode = false;
 
         if(m_playerController)
         {
-            m_playerController.PlayMode = false;
+            m_playerController.PlayMode = m_playMode;
         }
 
         if(m_cameraController)
         {
-            m_cameraController.PlayMode = false;
+            m_cameraController.PlayMode = m_playMode;
         }
     }
 

@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: fbe1e7b94bb1a4a099d5bcb15a00141c
-timeCreated: 1520117344
+timeCreated: 1520170905
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -199,10 +199,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_6
       rect:
         serializedVersion: 2
-        x: 192
+        x: 194
         y: 192
-        width: 32
-        height: 32
+        width: 28
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -212,10 +212,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_7
       rect:
         serializedVersion: 2
-        x: 224
+        x: 226
         y: 192
-        width: 32
-        height: 32
+        width: 28
+        height: 29
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -225,10 +225,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_8
       rect:
         serializedVersion: 2
-        x: 0
+        x: 2
         y: 160
-        width: 32
-        height: 32
+        width: 28
+        height: 29
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -238,10 +238,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_9
       rect:
         serializedVersion: 2
-        x: 32
+        x: 34
         y: 160
-        width: 32
-        height: 32
+        width: 28
+        height: 29
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -251,10 +251,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_10
       rect:
         serializedVersion: 2
-        x: 64
+        x: 66
         y: 160
-        width: 32
-        height: 32
+        width: 28
+        height: 29
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -264,10 +264,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_11
       rect:
         serializedVersion: 2
-        x: 96
+        x: 98
         y: 160
-        width: 32
-        height: 32
+        width: 28
+        height: 30
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -277,10 +277,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_12
       rect:
         serializedVersion: 2
-        x: 128
+        x: 130
         y: 160
-        width: 32
-        height: 32
+        width: 29
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -290,10 +290,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_13
       rect:
         serializedVersion: 2
-        x: 160
+        x: 162
         y: 160
-        width: 32
-        height: 32
+        width: 29
+        height: 30
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -303,10 +303,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_14
       rect:
         serializedVersion: 2
-        x: 192
+        x: 194
         y: 160
-        width: 32
-        height: 32
+        width: 29
+        height: 30
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -316,10 +316,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_15
       rect:
         serializedVersion: 2
-        x: 224
+        x: 226
         y: 160
-        width: 32
-        height: 32
+        width: 29
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -342,10 +342,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_17
       rect:
         serializedVersion: 2
-        x: 32
+        x: 34
         y: 128
-        width: 32
-        height: 32
+        width: 29
+        height: 30
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -355,10 +355,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_18
       rect:
         serializedVersion: 2
-        x: 64
-        y: 128
-        width: 32
-        height: 32
+        x: 66
+        y: 129
+        width: 29
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -368,10 +368,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_19
       rect:
         serializedVersion: 2
-        x: 96
-        y: 128
-        width: 32
-        height: 32
+        x: 99
+        y: 136
+        width: 26
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -642,9 +642,9 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 32
-        width: 32
-        height: 32
+        y: 33
+        width: 29
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -654,10 +654,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_41
       rect:
         serializedVersion: 2
-        x: 32
-        y: 32
-        width: 32
-        height: 32
+        x: 34
+        y: 33
+        width: 29
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -669,7 +669,7 @@ TextureImporter:
         serializedVersion: 2
         x: 64
         y: 32
-        width: 32
+        width: 28
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -680,10 +680,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_43
       rect:
         serializedVersion: 2
-        x: 96
+        x: 97
         y: 32
-        width: 32
-        height: 32
+        width: 28
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -695,7 +695,7 @@ TextureImporter:
         serializedVersion: 2
         x: 128
         y: 32
-        width: 32
+        width: 31
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -706,10 +706,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_45
       rect:
         serializedVersion: 2
-        x: 160
+        x: 163
         y: 32
-        width: 32
-        height: 32
+        width: 28
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -719,10 +719,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_46
       rect:
         serializedVersion: 2
-        x: 192
-        y: 32
-        width: 32
-        height: 32
+        x: 194
+        y: 33
+        width: 28
+        height: 30
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -732,10 +732,10 @@ TextureImporter:
       name: Scavengers_SpriteSheet_47
       rect:
         serializedVersion: 2
-        x: 224
-        y: 32
-        width: 32
-        height: 32
+        x: 226
+        y: 33
+        width: 29
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}

@@ -78,8 +78,6 @@ public class BoardManager : MonoBehaviour
     private List<GameObject> m_gridObjects = new List<GameObject>();
     [SerializeField]
     private int playerRoomSpawnID = 0;
-    [SerializeField]
-    private bool m_loadFromFile = false;
 
 
     private IntRange m_numRooms;
@@ -88,55 +86,39 @@ public class BoardManager : MonoBehaviour
     private IntRange m_corridorLength;
 
 
-    [System.Flags]
-    private enum DirBitMask { North = 1, West = 2, East = 4, South = 8 }
-    private DirBitMask dirBit;
-
-
     private void Awake()
     {
-        m_numRooms = new IntRange(m_minRooms, m_maxRooms);
-        m_roomWidth = new IntRange(m_minRoomWidth, m_minRoomHeight);
-        m_roomHeight = new IntRange(m_minRoomHeight, m_maxRoomHeight);
-        m_corridorLength = new IntRange(m_minCorridorLength, m_maxCorridorLength);
-
         m_board = new GameObject("TileBoard");
     }
 
-    private void Start()
+
+    /// <summary>
+    /// Generate a completely new level.
+    /// </summary>
+    public void GenerateRandomLevel()
     {
-        Run();
-    }
+        ClearGridObjects();
 
+        m_numRooms       = new IntRange(m_minRooms, m_maxRooms);
+        m_roomWidth      = new IntRange(m_minRoomWidth, m_minRoomHeight);
+        m_roomHeight     = new IntRange(m_minRoomHeight, m_maxRoomHeight);
+        m_corridorLength = new IntRange(m_minCorridorLength, m_maxCorridorLength);
 
-    private void Update()
-    {
-        // TODO: Send to UIManager
-        if(Input.GetKeyDown(KeyCode.G))
-        {
-            Run();
-        }
-    }
-
-
-
-    private void Run()
-    {
-        Debug.Log("Log: Generate.");
-        if(m_loadFromFile && ReadDungeonFile("tempDungeon.txt"))
-        {
-            m_tiles = TextDungeon.FileData.TileData;
-            m_rows = TextDungeon.FileData.m_rows;
-            m_columns = TextDungeon.FileData.m_columns;
-        }
-        else
-        {
-            InitTileList();
-            GenerateDungeon();
-            WriteDungeonFile("tempDungeon.txt");
-        }
+        InitTileList();
+        GenerateDungeon();
         InstantiateTiles();
     }
+
+
+    public void LoadLevelFromData(LoadData levelData)
+    {
+        m_tiles   = levelData.TileData;
+        m_rows    = levelData.m_rows;
+        m_columns = levelData.m_columns;
+
+        InstantiateTiles();
+    }
+
 
 
     /// <summary>
@@ -188,7 +170,7 @@ public class BoardManager : MonoBehaviour
         SetRoomTiles();
         SetCorridorTiles();
         SetPlayerTile();
-        AddOutterWall();
+        SetOutterWallTiles();
     }
 
     /// <summary>
@@ -196,15 +178,12 @@ public class BoardManager : MonoBehaviour
     /// </summary>
     private void SetPlayerTile()
     {
-        // foreach room in roomList
-        // save lowest x
-        // save lowest y
-
-        AddPlayer(m_rooms[playerRoomSpawnID]);
+        var room = m_rooms[playerRoomSpawnID];
+        m_tiles[room.m_xPos][room.m_yPos] = TileType.Floor | TileType.Player;
     }
 
 
-    private void AddOutterWall()
+    private void SetOutterWallTiles()
     {
         for(int i = 0; i < m_columns; i++)
         {
@@ -236,12 +215,6 @@ public class BoardManager : MonoBehaviour
     }
 
 
-    private void AddPlayer(Room room)
-    {
-        m_tiles[room.m_xPos][room.m_yPos] = TileType.Floor | TileType.Player;
-    }
-
-
 
     /// <summary>
     /// Set the tile type for the Rooms.
@@ -251,6 +224,8 @@ public class BoardManager : MonoBehaviour
         for(int i = 0; i < m_rooms.Count; i++)
         {
             var room = m_rooms[i];
+
+
             for(int j = 0; j < room.m_roomWidth; j++)
             {
                 int x = room.m_xPos + j;
@@ -276,7 +251,6 @@ public class BoardManager : MonoBehaviour
                 int y = currentCorridor.m_startYPosition;
 
 
-                //TODO: Different size corridors by changing the Xs and Ys
                 switch(currentCorridor.m_direction)
                 {
                     case Direction.North:
@@ -303,30 +277,19 @@ public class BoardManager : MonoBehaviour
     /// <summary>
     /// Remove any object which are about to be written over by BitmaskFloorEdges();
     /// </summary>
-    public void BitmaskPreRemove()
+    public void RemoveEdgeAndFloorTiles()
     {
-        // Run through each char in the tiletype
         for(int i = 0; i < m_tiles.Length; i++)
         {
             for(int j = 0; j < m_tiles[i].Length; j++)
             {
                 if((m_tiles[i][j] & TileType.Floor) == TileType.Floor)
                 {
-                    dirBit = new DirBitMask();
-                    BitmaskDirection(1, i, j + 1); // North
-                    BitmaskDirection(2, i - 1, j); // West
-                    BitmaskDirection(4, i + 1, j); // East
-                    BitmaskDirection(8, i, j - 1); // South
-
-
-
                     var obj = m_gridObjects.Find(o => 
                     {
                         if(o == null) return false;
-
                         return o.transform.position.x == i && o.transform.position.y == j;
                     });
-
                     m_gridObjects.Remove(obj);
                     Destroy(obj);
                 }
@@ -344,7 +307,7 @@ public class BoardManager : MonoBehaviour
     /// init and update edges of sprites.
     /// </summary>
     /// <param name="initFloor"></param>
-    public void BitmaskFloorEdges(bool initFloor)
+    public void BitmaskFloorEdges()
     {
         for(int i = 0; i < m_tiles.Length; i++)
         {
@@ -352,18 +315,10 @@ public class BoardManager : MonoBehaviour
             {
                 if((m_tiles[i][j] & TileType.Floor) == TileType.Floor)
                 {
-                    dirBit = new DirBitMask();
-                    BitmaskDirection(1, i, j + 1); // North
-                    BitmaskDirection(2, i - 1, j); // West
-                    BitmaskDirection(4, i + 1, j); // East
-                    BitmaskDirection(8, i, j - 1); // South
-
-
-                    var tileID = CalculateSpriteID();
+                    var tileID = EdgeCalculations.TileID(m_tiles, i, j);
                     if(tileID == m_barrierTiles.Count)
                     {
-                        //if(initFloor)
-                            InstantiateFromArray(m_floorTiles, i, j);
+                        InstantiateFromArray(m_floorTiles, i, j);
                     }
                     else
                     {
@@ -378,46 +333,6 @@ public class BoardManager : MonoBehaviour
         }
     }
 
-
-    private void BitmaskDirection(int bitFlag, int x, int y)
-    {
-        // TODO: m_tiles[0] is a bit hacky and hardcoded.
-        if(x >= m_tiles.Length || x < 0)
-            return;
-        if(y >= m_tiles[0].Length || y < 0)
-            return;
-
-        if((m_tiles[x][y] & TileType.Floor) == TileType.Floor)
-            dirBit |= (DirBitMask)bitFlag;
-    }
-
-
-    private int CalculateSpriteID()
-    {
-        int total = 0;
-
-        if((dirBit & DirBitMask.North) == DirBitMask.North)
-        {
-            total += (int)DirBitMask.North;
-        }
-
-        if((dirBit & DirBitMask.West) == DirBitMask.West)
-        {
-            total += (int)DirBitMask.West;
-        }
-
-        if((dirBit & DirBitMask.East) == DirBitMask.East)
-        {
-            total += (int)DirBitMask.East;
-        }
-
-        if((dirBit & DirBitMask.South) == DirBitMask.South)
-        {
-            total += (int)DirBitMask.South;
-        }
-
-        return total;
-    }
 
 
     private void ClearGridObjects()
@@ -466,36 +381,11 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
-        BitmaskFloorEdges(true);
-    }
-
-    /// <summary>
-    /// TODO: Saving in Unity via UI
-    /// </summary>  
-    /// <param name="fileName"></param>
-    public void WriteDungeonFile(string fileName)
-    {
-        if(!TextDungeon.BuildTextDungeonFile(m_tiles))
-        {
-            Debug.LogError("Error: Building the dungeon file");
-        }
-
-        if(!TextDungeon.OutputToFile(Application.dataPath + "/Resources/Saves/", fileName, TextDungeon.OutputData))
-        {
-            Debug.LogError("Error: Outputting to file.");
-        }
+        BitmaskFloorEdges();
     }
 
 
-    public bool ReadDungeonFile(string fileName)
-    {
-        if(!TextDungeon.ReadFile(Application.dataPath + "/Resources/Saves/", fileName))
-        {
-            Debug.LogError("Error: Function returned false");
-            return false;
-        }
-        return true;
-    }
+   
 
     /// <summary> 
     /// Generate a prefab at random.

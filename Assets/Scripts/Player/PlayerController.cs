@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour 
 {
-    public bool PlayMode { private get; set; }
+    public bool PlayMode;
 
     [SerializeField]
     private Rigidbody2D m_rb;
@@ -15,8 +15,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private float m_damp = -0.01f;
 
-
-    private bool m_moveUp, m_moveRight, m_moveDown, m_moveLeft = false;
+    [SerializeField]
+    private bool m_moveUp, m_moveRight, m_moveDown, m_moveLeft, m_pickSwing = false;
     private bool m_idle = false;
 
     private void Awake()
@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
         m_rb = GetComponent<Rigidbody2D>();
         m_animator = GetComponent<Animator>();
 
-        PlayMode = true;
+        PlayMode = false;
 
         // TODO: ERROR CHECK
     }
@@ -33,22 +33,32 @@ public class PlayerController : MonoBehaviour
     {
         if(!PlayMode) return;
 
-        if(Input.GetKey(KeyCode.UpArrow))
+        if(Input.GetMouseButton(0))
+        {
+            m_pickSwing = true;
+        }
+        if(Input.GetMouseButtonUp(0))
+        {
+            m_pickSwing = false;
+        }
+
+        if(Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
         {
             m_moveUp = true;
         }
-        if(Input.GetKey(KeyCode.DownArrow))
+        if(Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
         {
             m_moveDown = true;
         }
-        if(Input.GetKey(KeyCode.LeftArrow))
+        if(Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             m_moveLeft = true;
         }
-        if(Input.GetKey(KeyCode.RightArrow))
+        if(Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
             m_moveRight = true;
         }
+
         if(!m_moveUp && !m_moveLeft && !m_moveDown && !m_moveRight)
         {
             m_idle = true;
@@ -57,33 +67,62 @@ public class PlayerController : MonoBehaviour
         {
             m_idle = false;
         }
+
+        UpdateAnimations();
     }
-
-
 
     private void FixedUpdate()
     {
         if(m_moveUp)
         {
-            m_rb.velocity = new Vector2(m_rb.velocity.x, m_movementSpeed * 1 * Time.fixedDeltaTime);
+            m_rb.velocity = new Vector2(0f, m_movementSpeed * 1 * Time.fixedDeltaTime);
         }
         if(m_moveRight)
         {
-            m_rb.velocity = new Vector2(m_movementSpeed * 1 * Time.fixedDeltaTime, m_rb.velocity.y);
+            m_rb.velocity = new Vector2(m_movementSpeed * 1 * Time.fixedDeltaTime, 0f);
         }
         if(m_moveLeft)
         {
-            m_rb.velocity = new Vector2(m_movementSpeed * -1 * Time.fixedDeltaTime, m_rb.velocity.y);
+            m_rb.velocity = new Vector2(m_movementSpeed * -1 * Time.fixedDeltaTime,0f);
         }
         if(m_moveDown)
         {
-            m_rb.velocity = new Vector2(m_rb.velocity.x, m_movementSpeed * -1 * Time.fixedDeltaTime);
+            m_rb.velocity = new Vector2(0f, m_movementSpeed * -1 * Time.fixedDeltaTime);
         }
         if(m_idle)
         {
             m_rb.velocity = Vector2.zero;
         }
 
-        m_moveUp  = m_moveRight = m_moveDown = m_moveLeft = false;
+        m_moveUp = m_moveRight = m_moveDown = m_moveLeft = false;
+    }
+
+
+    private void UpdateAnimations()
+    {
+        // Flip direction
+        if(m_rb.velocity.x > 0)
+        {
+            transform.localScale = new Vector3(1, 1, 1);
+        }
+        if(m_rb.velocity.x < 0)
+        {
+            transform.localScale = new Vector3(-1, 1, 1);
+        }
+
+        if(m_pickSwing)
+        {
+            ChangeAnimationState(1);
+        }
+        else
+        {
+            ChangeAnimationState(0);
+        }
+    }
+
+
+    private void ChangeAnimationState(int value)
+    {
+        m_animator.SetInteger("AnimState", value);
     }
 }

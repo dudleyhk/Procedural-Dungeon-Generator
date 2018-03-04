@@ -58,7 +58,7 @@ public class Corridor
         // Calculate the oppose direction from the direction we came from.
         Direction oppositeDirection = (Direction)(((int)room.m_enteringCorridor + 2) % 4);
 
-        // If this is noth the first corridor and the randomly selected direction is opposite to the previous corridor's direction...
+        // If this is not the first corridor and the randomly selected direction is opposite to the previous corridor's direction...
         if(!firstCorridor && m_direction == oppositeDirection)
         {
             // Get the direction add 1 and divide by 4.

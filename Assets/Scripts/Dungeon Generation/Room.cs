@@ -22,10 +22,10 @@ public class Room
     {
         m_roomWidth  = widthRange.Random;
         m_roomHeight = heightRange.Random;
-
-        // Set the initial room roughly in the middle of the board.
-        m_xPos = Mathf.RoundToInt(columns / 2f - m_roomWidth / 2f);
-        m_yPos = Mathf.RoundToInt(rows / 2f - m_roomHeight / 2f);
+        
+        // Init room in bottom Left.
+        m_xPos = 1;
+        m_yPos = 1;  
     }
 
 
@@ -44,7 +44,7 @@ public class Room
         m_roomWidth  = widthRange.Random;
         m_roomHeight = heightRange.Random;
 
-        switch(corridor.m_direction)
+        switch(m_enteringCorridor)
         {
             case Direction.North:
                 m_roomHeight = Mathf.Clamp(m_roomHeight, 1, rows - corridor.EndPositionY);
