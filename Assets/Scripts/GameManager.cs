@@ -21,42 +21,37 @@ public class GameManager : MonoBehaviour
     private void OnEnable()
     {
         // TODO: Hook up to the menu load functions.
-        // PlayGame += GenerateFromFile(file)
+        UIManager.saveLevel += SaveFile;
+        UIManager.loadLevel += GenerateFromFile;
+        UIManager.generate += GenerateRandomLevel;
     }
 
     private void OnDisable()
     {
         // TODO: Hook up to the menu load functions.
-        // PlayGame -= GenerateFromFile(file)
+        UIManager.saveLevel -= SaveFile;
+        UIManager.generate -= GenerateRandomLevel;
     }
+    
 
-
-    private void Start()
-    {
-
-    }
-
-    private void Update()
-    {
-        if(Input.GetKeyDown(KeyCode.R))
-            GenerateRandomLevel();
-
-        if(Input.GetKeyDown(KeyCode.F))
-            GenerateFromFile("tempDungeon.txt");
-    }
-
-    private void GenerateRandomLevel()
+    public void GenerateRandomLevel()
     {
         m_boardManager.GenerateRandomLevel();
-        FileManager.WriteDungeonFile(m_boardManager.m_tiles, "tempDungeon.txt");
+       
     }
 
 
-    private void GenerateFromFile(string file)
+    public void GenerateFromFile(string file)
     {
         if(FileManager.ReadDungeonFile(file))
         {
             m_boardManager.LoadLevelFromData(FileManager.CurrentLoadData);
         }
+    }
+
+
+    private void SaveFile(string fileName)
+    {
+        FileManager.WriteDungeonFile(m_boardManager.m_tiles, fileName);
     }
 }

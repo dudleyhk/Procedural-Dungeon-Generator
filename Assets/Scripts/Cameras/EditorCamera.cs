@@ -22,6 +22,8 @@ public class EditorCamera : MonoBehaviour
 
     private void Update()
     {
+        if(TileEditor.Pause) return;
+
         // TODO: Centre at middle of map.
         if(Input.GetKeyDown(KeyCode.C))
         {

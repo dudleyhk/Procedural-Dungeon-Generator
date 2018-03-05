@@ -126,6 +126,8 @@ public class BoardManager : MonoBehaviour
 
     public void LoadLevelFromData(LoadData levelData)
     {
+        ClearGridObjects();
+
         m_tiles   = levelData.TileData;
         m_rows    = levelData.m_rows;
         m_columns = levelData.m_columns;
@@ -183,9 +185,9 @@ public class BoardManager : MonoBehaviour
 
         SetRoomTiles();
         SetCorridorTiles();
-        SetEnemies();
         SetPlayerTile();
         SetOutterWallTiles();
+        SetEnemies(); // Set last.
     }
 
     /// <summary>
@@ -236,21 +238,9 @@ public class BoardManager : MonoBehaviour
     /// </summary>
     private void SetRoomTiles()
     {
-        for(int i = 0; i < m_rooms.Count; i++)
-        {
-            var room = m_rooms[i];
-
-
-            for(int j = 0; j < room.m_roomWidth; j++)
-            {
-                int x = room.m_xPos + j;
-                for(int k = 0; k < room.m_roomHeight; k++)
-                {
-                    int y = room.m_yPos + k;
-                    m_tiles[x][y] = TileType.Floor;
-                }
-            }
-        }
+        foreach(var room in m_rooms)
+            foreach(var cell in room.m_cells)
+                m_tiles[(int)cell.x][(int)cell.y] = TileType.Floor;
     }
 
 
@@ -259,12 +249,10 @@ public class BoardManager : MonoBehaviour
         for(int i = 0; i < m_corridors.Count; i++)
         {
             var currentCorridor = m_corridors[i];
-
             for(int j = 0; j < currentCorridor.m_corridorLength; j++)
             {
                 int x = currentCorridor.m_startXPosition;
                 int y = currentCorridor.m_startYPosition;
-
 
                 switch(currentCorridor.m_direction)
                 {
@@ -281,8 +269,6 @@ public class BoardManager : MonoBehaviour
                         x -= j;
                         break;
                 }
-
-                // Set the tile at these coordinates to Floor.
                 m_tiles[x][y] = TileType.Floor;
             }
         }
@@ -297,8 +283,12 @@ public class BoardManager : MonoBehaviour
             if(enemyTileIDs.Length < m_maxEnemiesPerRoom)
                 m_maxEnemiesPerRoom = (uint)enemyTileIDs.Length;    
 
+
+            int fails = 0;
             for(int i = 0; i < m_maxEnemiesPerRoom; i++)
             {
+                if(fails >= 100) break;
+
                 var rand = Random.Range(0, enemyTileIDs.Length);
                 var id = enemyTileIDs[rand];
                 var x = id % room.m_roomWidth;
@@ -308,6 +298,7 @@ public class BoardManager : MonoBehaviour
                 if((m_tiles[x][y] & TileType.Enemy) == TileType.Enemy)
                 {
                     i--;
+                    fails++;
                 }
                 else
                 {
@@ -383,7 +374,7 @@ public class BoardManager : MonoBehaviour
     }
 
 
-
+     
     private void ClearGridObjects()
     {
         if(m_gridObjects == null || m_gridObjects.Count <= 0)
@@ -393,7 +384,6 @@ public class BoardManager : MonoBehaviour
         {
             Destroy(obj);
         }
-
         m_gridObjects.Clear();
     }
 
@@ -418,7 +408,8 @@ public class BoardManager : MonoBehaviour
                 }
                 else if((m_tiles[i][j] & TileType.Player) == TileType.Player)
                 {
-                    Instantiate(m_player, new Vector2(i, j), Quaternion.identity);
+                    Instantiate(m_player, m_board, new Vector2(i, j));
+
                 }
                 else if((m_tiles[i][j] & TileType.Empty) == TileType.Empty)
                 {

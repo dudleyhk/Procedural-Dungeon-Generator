@@ -98,9 +98,9 @@ public class Room
     public int[] PossibleEnemyPositions(TileType[][] types)
     {
         List<int> validTileIDs = new List<int>();
-        for(int y = m_yPos; y < m_roomHeight; y++)
+        for(int y = m_yPos; y < m_yPos + m_roomHeight; y++)
         {
-            for(int x = m_xPos; x < m_roomWidth; x++)
+            for(int x = m_xPos; x < m_xPos + m_roomWidth; x++)
             {
                 var idx = y * m_roomWidth + x;
 
@@ -118,21 +118,26 @@ public class Room
                 if(y < m_yPos + m_roomHeight)
                     endY++;
 
-                int kk = 1;
+                int kk = 0;
                 //TODO: Encapsule in another function so A* can use it.
                 for(int _y = startY; _y <= endY; _y++)
-                { 
+                {
                     for(int _x = startX; _x <= endX; _x++)
                     {
-                        if((types[_x][_y] & TileType.Floor) == TileType.Floor && 
-                            (types[_x][_y] & TileType.Player) != TileType.Player)
+                        if((types[_x][_y] & TileType.Floor) == TileType.Floor)
                         {
-                            kk++;
-
+                            if(!((types[_x][_y] & TileType.Player) == TileType.Player))
+                            {
+                                if(!((types[_x][_y] & TileType.OutterWall) == TileType.OutterWall))
+                                {
+                                    kk++;
+                                }
+                            }
                         }
                     }
-            }
-                if(kk > 8)
+                }
+
+                if(kk >= 9)
                     if(!validTileIDs.Contains(idx))
                         validTileIDs.Add(idx);
             }
@@ -143,8 +148,8 @@ public class Room
 
     private void AddCellPosition(int _x, int _y)
     {
-        for(int y = _y; y < m_roomHeight; y++)
-            for(int x = _x; x < m_roomWidth; x++)
+        for(int y = _y; y < m_yPos + m_roomHeight; y++)
+            for(int x = _x; x < m_xPos + m_roomWidth; x++)
                 m_cells.Add(new Vector2(x, y));
     }
 }

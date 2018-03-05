@@ -17,7 +17,7 @@ public struct StringLiterals
     public const char Item       = '?';
     public const char Player     = 'p';
     public const char OutterWall = 'x';
-    public const char Enemy      = '^';
+    public const char Enemy      = 'e';
     public const char Exit       = 'E';
     public const char Debug      = '~';
     public const char NewLine    = '\n';
@@ -46,23 +46,33 @@ public class TextDungeon
     }
 
 
+    /// <summary>
+    /// TODO: error check params.
+    /// Write to existing file or create a new file. 
+    /// </summary>
+    /// <param name="filePath"></param>
+    /// <param name="fileName"></param>
+    /// <param name="outputData"></param>
+    /// <returns></returns>
     public static bool OutputToFile(string filePath, string fileName, string outputData)
     {
         if(outputData == StringLiterals.Blank)
             return false;
 
-        if(System.IO.File.Exists(filePath + fileName))
+        var result = System.IO.File.Exists(filePath + fileName);
+        System.IO.StreamWriter streamWriter;
+
+        if(!result)
         {
-            var streamWriter = new System.IO.StreamWriter(filePath + fileName);
-            streamWriter.Write(outputData);
-            streamWriter.Close();
+            streamWriter = System.IO.File.CreateText(filePath + fileName);
         }
         else
         {
-            //TODO: Create a new file and save it to saved maps. 
-            UnityEngine.Debug.LogWarning("Warning: File " + fileName + " at path " + filePath + " doesn't exist.");
-            return false;
+            streamWriter = new System.IO.StreamWriter(filePath + fileName);
         }
+        streamWriter.Write(outputData);
+        streamWriter.Close();
+
         return true;
     }
 

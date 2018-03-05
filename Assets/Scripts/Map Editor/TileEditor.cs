@@ -15,6 +15,8 @@ public enum BrushType
 
 public class TileEditor : MonoBehaviour
 {
+    public static bool Pause { get; set; }
+
     [SerializeField]
     private GameManager m_gameManager;
     [SerializeField]
@@ -38,7 +40,12 @@ public class TileEditor : MonoBehaviour
 
     private void Start()
     {
+        Pause = false;
+        
         EditMode();
+
+        // Force m_gameManager to generate a random map.
+        m_gameManager.GenerateRandomLevel();
 
         // Start Coroutine which returns true when a player is found.
     }
@@ -57,6 +64,8 @@ public class TileEditor : MonoBehaviour
 
     private void Update()
     {
+        if(Pause) return;
+
         SwitchCameras();
         Paint();
 
