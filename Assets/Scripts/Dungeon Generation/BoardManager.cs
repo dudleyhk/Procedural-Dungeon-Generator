@@ -1,9 +1,19 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-// Keep in this order.
+
 [System.Flags]
-public enum TileType { Wall = 1, Floor = 2, Player = 4, OutterWall = 8, Item = 16, Exit = 32, Empty = 64 }
+public enum TileType
+{
+    Wall = 1,
+    Floor = 2,
+    Player = 4,
+    OutterWall = 8,
+    Item = 16,
+    Exit = 32,
+    Empty = 64,
+    Enemy = 128
+}
 
 public class BoardManager : MonoBehaviour
 {
@@ -42,6 +52,10 @@ public class BoardManager : MonoBehaviour
     [SerializeField]
     [Range(1, 1000)]
     private int m_maxRoomHeight = 15;
+
+    [Header("Items")]
+    [SerializeField]
+    private uint m_maxEnemiesPerRoom = 3;
 
     [Header("Corridor Info")]
     [SerializeField]
@@ -169,6 +183,7 @@ public class BoardManager : MonoBehaviour
 
         SetRoomTiles();
         SetCorridorTiles();
+        SetEnemies();
         SetPlayerTile();
         SetOutterWallTiles();
     }
@@ -274,6 +289,40 @@ public class BoardManager : MonoBehaviour
     }
 
 
+    private void SetEnemies()
+    {
+        foreach(var room in m_rooms)
+        {
+            var enemyTileIDs = room.PossibleEnemyPositions(m_tiles);
+            if(enemyTileIDs.Length < m_maxEnemiesPerRoom)
+                m_maxEnemiesPerRoom = (uint)enemyTileIDs.Length;    
+
+            for(int i = 0; i < m_maxEnemiesPerRoom; i++)
+            {
+                var rand = Random.Range(0, enemyTileIDs.Length);
+                var id = enemyTileIDs[rand];
+                var x = id % room.m_roomWidth;
+                var y = id / room.m_roomHeight;
+
+                // if it already equals enemy
+                if((m_tiles[x][y] & TileType.Enemy) == TileType.Enemy)
+                {
+                    i--;
+                }
+                else
+                {
+                    m_tiles[x][y] |= TileType.Enemy;
+                }
+            }
+
+
+            // TODO: Add evil enemies to corridors.
+            //          if a corridor is > 5 add to firth tile.
+            
+        }
+    }
+
+
     /// <summary>
     /// Remove any object which are about to be written over by BitmaskFloorEdges();
     /// </summary>
@@ -340,9 +389,9 @@ public class BoardManager : MonoBehaviour
         if(m_gridObjects == null || m_gridObjects.Count <= 0)
             return;
 
-        foreach(var b in m_gridObjects)
+        foreach(var obj in m_gridObjects)
         {
-            Destroy(b.gameObject);
+            Destroy(obj);
         }
 
         m_gridObjects.Clear();

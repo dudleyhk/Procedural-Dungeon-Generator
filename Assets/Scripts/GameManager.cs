@@ -6,8 +6,6 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField]
     public BoardManager m_boardManager;
-    [SerializeField]
-    public FileManager m_fileManager;
     
 
 
@@ -35,14 +33,22 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-       // GenerateRandomLevel();
-       GenerateFromFile("tempDungeon.txt");
+
     }
 
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.R))
+            GenerateRandomLevel();
+
+        if(Input.GetKeyDown(KeyCode.F))
+            GenerateFromFile("tempDungeon.txt");
+    }
 
     private void GenerateRandomLevel()
     {
         m_boardManager.GenerateRandomLevel();
+        FileManager.WriteDungeonFile(m_boardManager.m_tiles, "tempDungeon.txt");
     }
 
 

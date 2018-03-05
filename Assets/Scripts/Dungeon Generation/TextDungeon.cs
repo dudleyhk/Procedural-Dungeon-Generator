@@ -14,9 +14,10 @@ public struct StringLiterals
 
     public const char Wall       = '#';
     public const char Floor      = '.';
-    public const char Item       = 'i';
+    public const char Item       = '?';
     public const char Player     = 'p';
     public const char OutterWall = 'x';
+    public const char Enemy      = '^';
     public const char Exit       = 'E';
     public const char Debug      = '~';
     public const char NewLine    = '\n';
@@ -187,6 +188,10 @@ public class TextDungeon
         {
             output = StringLiterals.Player;
         }
+        else if((type & TileType.Enemy) == TileType.Enemy)
+        {
+            output = StringLiterals.Enemy;
+        }
         else if((type & TileType.Floor) == TileType.Floor)
         {
             output = StringLiterals.Floor;
@@ -195,6 +200,7 @@ public class TextDungeon
         {
             UnityEngine.Debug.LogWarning("Warning: Invalid TileType - " + type.ToString());
         }
+
         return output;
     }
 }
