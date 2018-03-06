@@ -29,6 +29,15 @@ public class PlayerController : MonoBehaviour
         // TODO: ERROR CHECK
     }
 
+    private void Start()
+    {
+        // TODO: Set this up in the game manager instead.
+        if(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == 
+            "Main")
+            PlayMode = true;
+    }
+
+
     private void Update()
     {
         if(!PlayMode) return;

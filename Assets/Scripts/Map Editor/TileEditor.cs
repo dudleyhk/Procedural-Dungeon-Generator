@@ -8,6 +8,7 @@ public enum BrushType
     Floor,
     Wall,
     Player,
+    Enemy,
     Erase,
     Unassigned
 }
@@ -93,7 +94,9 @@ public class TileEditor : MonoBehaviour
 
     private void Paint()
     {
-        if(m_playMode) return;
+        if(m_playMode)
+            return;
+
 
         if(Input.GetMouseButton(1))
         {
@@ -111,10 +114,10 @@ public class TileEditor : MonoBehaviour
 
                         m_gameManager.m_boardManager.m_tiles[x][y] = TileType.Floor;
                         m_gameManager.m_boardManager.InstantiateFromArray(
-                            m_gameManager.m_boardManager.m_floorTiles, 
-                            m_gameManager.m_boardManager.m_board, 
+                            m_gameManager.m_boardManager.m_floorTiles,
+                            m_gameManager.m_boardManager.m_board,
                             x, y);
-                        
+
                         Destroy(hit.transform.gameObject);
                     }
                     break;
@@ -131,20 +134,67 @@ public class TileEditor : MonoBehaviour
                         m_gameManager.m_boardManager.m_tiles[x][y] = TileType.Wall;
                         m_gameManager.m_boardManager.InstantiateFromArray(
                             m_gameManager.m_boardManager.m_wallTiles,
-                            m_gameManager.m_boardManager.m_board, 
+                            m_gameManager.m_boardManager.m_board,
                             x, y);
 
                         Destroy(hit.transform.gameObject);
                     }
                     break;
-                case BrushType.Player:
-                    break;
+
                 case BrushType.Erase:
                     Erase();
                     break;
                 case BrushType.Unassigned:
                     m_currBrushType = BrushType.Unassigned;
                     break;
+            }
+        }
+
+        if(Input.GetMouseButtonDown(1))
+        {
+            switch(m_currBrushType)
+            {
+                case BrushType.Enemy:
+                    foreach(var hit in FireRay2D())
+                    {
+                        var obj = hit.transform.gameObject;
+                        if(obj.tag == BrushType.Enemy.ToString())
+                            break;
+
+                        var x = (int)obj.transform.position.x;
+                        var y = (int)obj.transform.position.y;
+
+                        m_gameManager.m_boardManager.m_tiles[x][y] |= TileType.Enemy;
+                        m_gameManager.m_boardManager.InstantiateFromArray(
+                            m_gameManager.m_boardManager.m_enemyTiles,
+                            m_gameManager.m_boardManager.m_board,
+                            x, y);
+
+                        if(hit.transform.name == "Enemy" || hit.transform.name == "Player")
+                            Destroy(hit.transform.gameObject);
+                    }
+                    break;
+                case BrushType.Player:
+                    foreach(var hit in FireRay2D())
+                    {
+                        var obj = hit.transform.gameObject;
+                        if(obj.tag == BrushType.Player.ToString())
+                            break;
+
+                        var x = (int)obj.transform.position.x;
+                        var y = (int)obj.transform.position.y;
+
+                        m_gameManager.m_boardManager.m_tiles[x][y] |= TileType.Player;
+                        m_gameManager.m_boardManager.InstantiateFromArray(
+                            m_gameManager.m_boardManager.m_enemyTiles,
+                            m_gameManager.m_boardManager.m_board,
+                            x, y);
+
+                        if(hit.transform.name == "Enemy" || hit.transform.name == "Player")
+                            Destroy(hit.transform.gameObject);
+                    }
+                    break;
+
             }
         }
     }

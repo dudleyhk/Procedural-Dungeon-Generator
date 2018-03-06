@@ -53,6 +53,7 @@ public class PlayerCamera : MonoBehaviour
 
     private void SetTargetPosition()
     {
+        //TODO: Error check target.
         m_targetPosition = new Vector3(
             m_target.transform.position.x,
             m_target.transform.position.y,

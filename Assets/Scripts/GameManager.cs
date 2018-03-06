@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
     {
         // TODO: Hook up to the menu load functions.
         UIManager.saveLevel -= SaveFile;
+        UIManager.loadLevel -= GenerateFromFile;
         UIManager.generate -= GenerateRandomLevel;
     }
     

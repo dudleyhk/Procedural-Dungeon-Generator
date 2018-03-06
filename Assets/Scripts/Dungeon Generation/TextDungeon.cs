@@ -18,6 +18,7 @@ public struct StringLiterals
     public const char Player     = 'p';
     public const char OutterWall = 'x';
     public const char Enemy      = 'e';
+    public const char Empty      = '@';
     public const char Exit       = 'E';
     public const char Debug      = '~';
     public const char NewLine    = '\n';
@@ -165,6 +166,12 @@ public class TextDungeon
                         break;
                     case StringLiterals.Player:
                         FileData.TileData[i][j] = TileType.Player | TileType.Floor;
+                        break;
+                    case StringLiterals.Enemy:
+                        FileData.TileData[i][j] = TileType.Enemy | TileType.Floor;
+                        break;
+                    case StringLiterals.Empty:
+                        FileData.TileData[i][j] = TileType.Empty;
                         break;
                     case StringLiterals.Floor:
                         FileData.TileData[i][j] = TileType.Floor;
