@@ -28,6 +28,7 @@ public class BoardManager : MonoBehaviour
     public GameObject m_playerTile;
 
 
+	[Space]
     public TileType[][] m_tiles;
     public GameObject m_board;
 
@@ -68,6 +69,8 @@ public class BoardManager : MonoBehaviour
 
     [Header("Items")]
     [SerializeField]
+    private bool m_spawnItems = false;
+    [SerializeField]
     private uint m_maxEnemiesPerRoom = 3;
 
     [Header("Corridor Info")]
@@ -77,16 +80,16 @@ public class BoardManager : MonoBehaviour
     [SerializeField]
     [Range(1, 1000)]
     private int m_maxCorridorLength = 15;
-    
+
 
     [Header("Generated Info")]
     [SerializeField]
     private List<Room> m_rooms;
     [SerializeField]
     private List<Corridor> m_corridors;
-   
 
-    
+
+
 
     [Header("Game Info")]
     [SerializeField]
@@ -114,9 +117,9 @@ public class BoardManager : MonoBehaviour
     {
         ClearGridObjects();
 
-        m_numRooms       = new IntRange(m_minRooms, m_maxRooms);
-        m_roomWidth      = new IntRange(m_minRoomWidth, m_minRoomHeight);
-        m_roomHeight     = new IntRange(m_minRoomHeight, m_maxRoomHeight);
+        m_numRooms = new IntRange(m_minRooms, m_maxRooms);
+        m_roomWidth = new IntRange(m_minRoomWidth, m_minRoomHeight);
+        m_roomHeight = new IntRange(m_minRoomHeight, m_maxRoomHeight);
         m_corridorLength = new IntRange(m_minCorridorLength, m_maxCorridorLength);
 
         InitTileList();
@@ -129,8 +132,8 @@ public class BoardManager : MonoBehaviour
     {
         ClearGridObjects();
 
-        m_tiles   = levelData.TileData;
-        m_rows    = levelData.m_rows;
+        m_tiles = levelData.TileData;
+        m_rows = levelData.m_rows;
         m_columns = levelData.m_columns;
 
         InstantiateTiles();
@@ -188,7 +191,9 @@ public class BoardManager : MonoBehaviour
         SetCorridorTiles();
         SetPlayerTile();
         SetOutterWallTiles();
-        SetEnemies(); // Set last.
+
+        if(m_spawnItems)
+            SetEnemies();
     }
 
     /// <summary>
@@ -276,18 +281,17 @@ public class BoardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// // TODO: Calculate this using the text file instead.
-    /// Set the enemies in avaiable rooms. 
-    /// 
+    /// Set the enemies in avaiable rooms.
     /// </summary>
     private void SetEnemies()
     {
         bool result = TextDungeon.BuildTextDungeonFile(m_tiles);
-        if(!result) return;
+        if(!result)
+            return;
 
         var levelStr = TextDungeon.OutputData;
 
-        // TODO: Optimise algorithm by cross referencing each room cell ID with the 
+        // TODO: Optimise algorithm by cross referencing each room cell ID with the
         //          levelStr
 
 
@@ -321,7 +325,7 @@ public class BoardManager : MonoBehaviour
 
                 if(levelStr[idx] != StringLiterals.Floor)
                     continue;
-                
+
 
 
                 int kk = 0;
@@ -359,60 +363,60 @@ public class BoardManager : MonoBehaviour
         }
 
 
-      /// for(int i = 0; i < columns; i++)
-      /// {
-      ///     for(int j = 0; j < rows; j++)
-      ///     {
-      ///         var idx = i * rows + j;
-      ///         if(levelStr[idx] == StringLiterals.Enemy)
-      ///         {
-      ///             
-      ///         }
-      ///     }
-      /// }
+        /// for(int i = 0; i < columns; i++)
+        /// {
+        ///     for(int j = 0; j < rows; j++)
+        ///     {
+        ///         var idx = i * rows + j;
+        ///         if(levelStr[idx] == StringLiterals.Enemy)
+        ///         {
+        ///
+        ///         }
+        ///     }
+        /// }
 
 
-                // foreach(var room in m_rooms)
-                // {
-                //     var enemyTileIDs = room.PossibleEnemyPositions(m_tiles);
-                //     if(enemyTileIDs.Length < m_maxEnemiesPerRoom)
-                //         m_maxEnemiesPerRoom = (uint)enemyTileIDs.Length;    
-                //
-                //
-                //     int fails = 0;
-                //     for(int i = 0; i < m_maxEnemiesPerRoom; i++)
-                //     {
-                //         if(fails >= 100) break;
-                //
-                //         var rand = Random.Range(0, enemyTileIDs.Length);
-                //         var id = enemyTileIDs[rand];
-                //         var x = id % room.m_roomWidth;
-                //         var y = id / room.m_roomHeight;
-                //
-                //         // if it already equals enemy
-                //         if((m_tiles[x][y] & TileType.Enemy) == TileType.Enemy)
-                //         {
-                //             i--;
-                //             fails++;
-                //         }
-                //         else
-                //         {
-                //             m_tiles[x][y] |= TileType.Enemy;
-                //         }
-                //     }
-                //
-                //
-                //     // TODO: Add evil enemies to corridors.
-                //     //          if a corridor is > 5 add to firth tile.
-                //     
-                // }
-            }
+        // foreach(var room in m_rooms)
+        // {
+        //     var enemyTileIDs = room.PossibleEnemyPositions(m_tiles);
+        //     if(enemyTileIDs.Length < m_maxEnemiesPerRoom)
+        //         m_maxEnemiesPerRoom = (uint)enemyTileIDs.Length;
+        //
+        //
+        //     int fails = 0;
+        //     for(int i = 0; i < m_maxEnemiesPerRoom; i++)
+        //     {
+        //         if(fails >= 100) break;
+        //
+        //         var rand = Random.Range(0, enemyTileIDs.Length);
+        //         var id = enemyTileIDs[rand];
+        //         var x = id % room.m_roomWidth;
+        //         var y = id / room.m_roomHeight;
+        //
+        //         // if it already equals enemy
+        //         if((m_tiles[x][y] & TileType.Enemy) == TileType.Enemy)
+        //         {
+        //             i--;
+        //             fails++;
+        //         }
+        //         else
+        //         {
+        //             m_tiles[x][y] |= TileType.Enemy;
+        //         }
+        //     }
+        //
+        //
+        //     // TODO: Add evil enemies to corridors.
+        //     //          if a corridor is > 5 add to firth tile.
+        //
+        // }
+    }
 
 
-            /// <summary>
-            /// Remove any object which are about to be written over by BitmaskFloorEdges();
-            /// </summary>
-            public void RemoveEdgeAndFloorTiles()
+    /// <summary>
+    /// Remove any object which are about to be written over by BitmaskFloorEdges();
+    /// </summary>
+    public void RemoveEdgeAndFloorTiles()
     {
         for(int i = 0; i < m_tiles.Length; i++)
         {
@@ -422,9 +426,10 @@ public class BoardManager : MonoBehaviour
                         ((m_tiles[i][j] & TileType.Enemy) != TileType.Enemy) &&
                         ((m_tiles[i][j] & TileType.Player) != TileType.Player))
                 {
-                    var obj = m_gridObjects.Find(o => 
+                    var obj = m_gridObjects.Find(o =>
                     {
-                        if(o == null) return false;
+                        if(o == null)
+                            return false;
                         return o.transform.position.x == i && o.transform.position.y == j;
                     });
                     m_gridObjects.Remove(obj);
@@ -471,7 +476,7 @@ public class BoardManager : MonoBehaviour
     }
 
 
-     
+
     private void ClearGridObjects()
     {
         if(m_gridObjects == null || m_gridObjects.Count <= 0)
@@ -495,7 +500,7 @@ public class BoardManager : MonoBehaviour
         {
             for(int j = 0; j < m_tiles[i].Length; j++)
             {
-                if((m_tiles[i][j] & TileType.Wall) == TileType.Wall)
+                if     ((m_tiles[i][j] & TileType.Wall)       == TileType.Wall)
                 {
                     InstantiateFromArray(m_wallTiles, i, j);
                 }
@@ -503,33 +508,30 @@ public class BoardManager : MonoBehaviour
                 {
                     InstantiateFromArray(m_outerWallTiles, i, j);
                 }
-                else if((m_tiles[i][j] & TileType.Enemy) == TileType.Enemy)
+                else if((m_tiles[i][j] & TileType.Enemy)      == TileType.Enemy)
                 {
                     InstantiateFromArray(m_enemyTiles, i, j);
                 }
-                else if((m_tiles[i][j] & TileType.Player) == TileType.Player)
+                else if((m_tiles[i][j] & TileType.Player)     == TileType.Player)
                 {
                     Instantiate(m_playerTile, m_board, new Vector2(i, j));
 
                 }
-                else if((m_tiles[i][j] & TileType.Empty) == TileType.Empty)
+                else if((m_tiles[i][j] & TileType.Empty)      == TileType.Empty)
                 {
                     // TODO: Handle Empty space.
                     Instantiate(m_emptyTile, m_board, i, j);
                 }
-                else
-                {
-                    // DO nothing 
-                }
+                else{} // DO nothing
             }
         }
         BitmaskFloorEdges();
     }
 
 
-   
 
-    /// <summary> 
+
+    /// <summary>
     /// Generate a prefab at random.
     /// </summary>
     /// <param name="prefabs"></param>
@@ -551,7 +553,7 @@ public class BoardManager : MonoBehaviour
     /// <param name="board"></param>
     /// <param name="x"></param>
     /// <param name="y"></param>
-    public void Instantiate(GameObject prefab, GameObject board, float x, float y) { Instantiate(prefab, board, new Vector3(x,y,0f)); }
+    public void Instantiate(GameObject prefab, GameObject board, float x, float y) { Instantiate(prefab, board, new Vector3(x, y, 0f)); }
     public void Instantiate(GameObject prefab, GameObject board, Vector3 position)
     {
         var tile = Instantiate(prefab, position, Quaternion.identity);
@@ -560,6 +562,6 @@ public class BoardManager : MonoBehaviour
 
         m_gridObjects.Add(tile);
     }
-    
+
 
 }

@@ -2,11 +2,11 @@
 
 
 
-public class GameManager : MonoBehaviour 
+public class GameManager : MonoBehaviour
 {
-    [SerializeField]
+    [HideInInspector]
     public BoardManager m_boardManager;
-    
+
 
 
 
@@ -33,12 +33,12 @@ public class GameManager : MonoBehaviour
         UIManager.loadLevel -= GenerateFromFile;
         UIManager.generate -= GenerateRandomLevel;
     }
-    
+
 
     public void GenerateRandomLevel()
     {
         m_boardManager.GenerateRandomLevel();
-       
+
     }
 
 

@@ -14,6 +14,7 @@ public class PlayerCamera : MonoBehaviour
     private bool init = false;
 
 
+
     private void Awake()
     {
         Init();
@@ -22,6 +23,9 @@ public class PlayerCamera : MonoBehaviour
 
     private void Update()
     {
+        if(!m_target)
+            m_target = GameObject.FindGameObjectWithTag("Player");
+
         if(!init)
         {
             Init();
